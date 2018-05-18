@@ -30,11 +30,11 @@ var MapsLib = MapsLib || {}; MapsLib.schemaVersion = 2;
     // See https://developers.google.com/fusiontables/docs/v1/migration_guide for more info
 
     // The encrypted Table ID of your Fusion Table (found under File => About)
-    MapsLib.fusionTableId = "13xmU6wANRJb0Niqcdz5Tr0xWh4AyV0yN10xMxPc";
+    MapsLib.fusionTableId = "{TABLE_ID}";
 
     // *New Fusion Tables Requirement* API key. found at https://code.google.com/apis/console/
     // *Important* this key is for demonstration purposes. please register your own.
-    MapsLib.googleApiKey ="AIzaSyAMVBSXes-6P-gWaxRj20GK8NT6WDVpozM";
+    MapsLib.googleApiKey ="{API_KEY_FUSION_TABLE}";
     
 
     // DONE!  YOU COULD DELETE EVERYTHING AFTER THIS POINT AND STILL HAVE A WORKING APP.
@@ -45,6 +45,181 @@ var MapsLib = MapsLib || {}; MapsLib.schemaVersion = 2;
 
 
 $.extend(MapsLib, {
+    searchPage: { 
+        allColumns: false,
+        addressAutocomplete: {
+            country: "CO",
+            useDefaultMapBounds: false
+        },
+        distanceFilter: { 
+            entries: [ 
+            		["Cualquier lugar", "0", true],
+            		["200 Metros", "200 meters"],
+            		["400 Metros", "400 meters"],
+            		["700 Metros", "700 meters"],
+            		["1 Kilómetro", "1000 meters"],
+            		["1.5 Kilómetros", "1500 meters"],
+            		["2 Kilómetros", "2000 meters"] ]
+        },
+        columns: [
+            { label: "Código DANE", type: "text", column: "DANE SEDE", exact_match: true },
+            { label: "Nombre de la Sede", type: "text", column: "Nombre Sede" },
+            { label: "Nombre del Establecimiento", type: "text", column: "Nombre de la IE" },
+            { label: "Tipo", type: "dropdown",
+                entries: [
+                    ["Cualquiera", "", true],
+                    ["Oficiales", "'Tipo' CONTAINS 'OFICIAL'"],
+                    ["Oficiales Principales", "'Tipo' LIKE 'OFICIAL PRINCIPAL'"],
+                    ["Oficiales Sedes", "'Tipo' LIKE 'OFICIAL SEDE'"],
+                    ["Ampliación de Cobertura", "'Tipo' CONTAINS 'AMPLIACIÓN DE COBERTURA'"],
+                    ["Ampliación de Cobertura Discapacidad", "'Tipo' LIKE 'AMPLIACIÓN DE COBERTURA - DISCAPACIDAD'"],
+                    ["Ampliación de Cobertura Concesion", "'Tipo' LIKE 'AMPLIACIÓN DE COBERTURA - CONCESION'"],
+                    ["Ampliación de Cobertura Confesion Religiosa", "'Tipo' LIKE 'AMPLIACIÓN DE COBERTURA - CONFESION RELIGIOSA'"]
+                ]
+             },
+            { label: "Comuna", type: "dropdown", foreach: "Comuna",
+                entries: [
+                    ["Todas", "", true],
+                    ["Urbanas", "'Comuna' IN ('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22')"],
+                    ["Rurales", "'Comuna' IN ('51','52','53','54','55','56','57','58','59','60','61','62','63','64','65')"],
+                    ["Urbanas Intermedias 2018", "'Comuna' IN ('1','7','16','20','18')"],
+                    ["Urbanas Deficitarias 2018", "'Comuna' IN ('6','13','14','15','21')"],
+                    ["Urbanas No deficitarias 2018", "'Comuna' NOT IN ('7','16','20','18','1','6','13','14','15','21')"],
+                ]
+             },
+            { label: "Sector", type: "dropdown",  template: "'Sector' LIKE '{text}'",
+                entries: [
+                    ["Cualquiera", "", true],
+                    "OFICIAL",
+                    "NO OFICIAL"
+                ]
+             },
+            { label: "Zona", type: "dropdown", template: "'Zona' LIKE '{text}'",
+                entries: [
+                    ["Cualquiera", "", true],
+                    "URBANA",
+                    "RURAL"
+                ]
+             },
+            { label: "Matrícula Contratada", type: "dropdown", template: "'Matricula Contratada' LIKE '{text}'",
+                entries: [
+                    ["Cualquiera", "", true],
+                    "SI",
+                    "NO"
+                ]
+             },
+            { label: "Estado", type: "dropdown",
+                entries: [
+                    ["Cualquiera", "", true],
+                    ["Activo", "'Estado' CONTAINS 'ACTIVO'"],
+                    ["Cerrado", "'Estado' CONTAINS 'CIERRE'"]
+                ]
+             },
+            { label: "Calidad de la Georeferenciación", type: "dropdown",
+                entries: [
+                    ["Cualquiera", "", true],
+                    ["Exacta", "'Revisados' LIKE 'SI'"],
+                    ["Posible (Se ubica la dirección pero no se confirma)", "'Revisados' LIKE 'POSIBLE'"],
+                    ["No Verificado (Se toma de otras fuentes como el IDESC)", "'Revisados' LIKE 'NO VERIFICADO'"],
+                    ["No se encontró (Zona rurales)", "'Revisados' LIKE 'NO'"]
+                ]
+             },
+            { label: "Jornada (mañana, única, etc.)", type: "text", column: "Jornadas" },
+            { label: "No. Contrato", type: "text", column: "Número Contrato" },
+            { label: "Nivel (preescolar, primaria, etc.)", type: "text", column: "Niveles" },
+            { label: "Grado", type: "dropdown", template: "'Grados' CONTAINS '{text}'",
+                entries: [
+                    ["Cualquiera", "", true],
+                    ["(-2) Pre-Jardín", "'Grados' CONTAINS '-2'"],
+					["(-1) Jardín", "'Grados' CONTAINS '-1'"],
+					["(0) Transición", "'Grados' CONTAINS '0'"],
+					["Primero", "'Grados' CONTAINS '1'"],
+					["Segundo", "'Grados' CONTAINS '2'"],
+					["Tercero", "'Grados' CONTAINS '3'"],
+					["Cuarto", "'Grados' CONTAINS '4'"],
+					["Quinto", "'Grados' CONTAINS '5'"],
+					["Sexto", "'Grados' CONTAINS '6'"],
+					["Séptimo", "'Grados' CONTAINS '7'"],
+					["Octavo", "'Grados' CONTAINS '8'"],
+					["Noveno", "'Grados' CONTAINS '9'"],
+					["Décimo", "'Grados' CONTAINS '10'"],
+					["Once", "'Grados' CONTAINS '11'"],
+					["Doce - Normal Superior", "'Grados' CONTAINS '12'"],
+					["Trece - Normal Superior", "'Grados' CONTAINS '13'"],
+					["(14) Educación discapacidad cognitiva no integrada", "'Grados' CONTAINS '14'"],
+					["(15) Educación discapacidad auditiva no integrada", "'Grados' CONTAINS '15'"],
+					["(16) Educación discapacidad visual no integrada", "'Grados' CONTAINS '16'"],
+					["(17) Educación discapacidad motora no integrada", "'Grados' CONTAINS '17'"],
+					["(18) Educación discapacidad múltiple no integrada", "'Grados' CONTAINS '18'"],
+					["(21) Ciclo 1 Adultos", "'Grados' CONTAINS '21'"],
+					["(21) Ciclo 2 Adultos", "'Grados' CONTAINS '22'"],
+					["(21) Ciclo 3 Adultos", "'Grados' CONTAINS '23'"],
+					["(21) Ciclo 4 Adultos", "'Grados' CONTAINS '24'"],
+					["(21) Ciclo 5 Adultos", "'Grados' CONTAINS '25'"],
+					["(21) Ciclo 6 Adultos", "'Grados' CONTAINS '26'"],
+					["(99) Aceleración del Aprendizaje", "'Grados' CONTAINS '99'"]
+                ]
+             }
+        ]
+    },
+    mapOverlays: [ 
+        "1554qv-HnVlqc4SWCliBRkHh-nvTS1KiVwfQ3nXQh",
+        "10v1xazzktqc55zNJdWrQksKfAjV8sl2GiWFM9Cao",
+        "1IWugsOrRji8ndX26zRsCrxAvN0kp-_TkB-eWCwYv",
+    ],
+    customInfoboxHtml: " \
+    	{{#if isListView}} \
+		<div class='googft-info-window' style='white-space: initial;'> \
+		{{else}} \
+		<div class='googft-info-window' style='font-family: sans-serif;font-size: 10px;width: 300px;'> \
+		{{/if}} \
+			{{#if isListView}} \
+			<div style='font-family: \"Times New Roman\", Times, serif;font-size: 18px!important; \
+					background-color: #333333!important; color: white;'> \
+				<b>Nombre Sede:</b> {{row.Nombre_Sede}} \
+			</div>\
+			<div style='color: #333333;'> \
+			{{else}} \
+			<div style='font-size: 18px!important; background-color: #215a9a!important; color: white;'> \
+				<b>Nombre Sede:</b> {{row.Nombre_Sede}} \
+			</div>\
+			<div style='color: #215a9a;'> \
+			{{/if}} \
+				<b>DANE SEDE:</b> {{row.DANE_SEDE}}<br /> \
+				<b>Nombre de la IE:</b> {{row.Nombre_de_la_IE}}<br /> \
+				{{#if isListView}} \
+				{{else}} \
+				<b>DANE PRINCIPAL:</b> {{row.DANE_PRINCIPAL}}<br /> \
+				{{/if}} \
+				<b>Direcci&oacute;n:</b> {{row.Dirección}}<br /> \
+				{{#if isListView}} \
+				{{else}} \
+				<b>Direcci&oacute;n Ajustada Manual:</b> {{row.Dirección_Ajustada_Manual}}<br /> \
+				<b>Coordenadas:</b> {{row.Coordenadas}}<br /> \
+				<div style='color: #339966;'> \
+					<b>Revisados:</b> {{row.Revisados}}<br /> \
+				</div> \
+				<div style='color: red;'> \
+					<b>Sector:</b> {{row.Sector}}<br /> \
+					<b>Matr&iacute;cula Contratada:</b> {{row.Matricula_Contratada}}<br /> \
+				</div>\
+				<b>Zona:</b> {{row.Zona}}<br /> \
+				<b>Comuna:</b> {{row.Comuna}}<br /> \
+				<b>Niveles:</b> {{row.Niveles}}<br /> \
+				<b>Grados:</b> {{row.Grados}}<br /> \
+				<b>Estado:</b> {{row.Estado}}<br /> \
+				<b>Jornadas:</b> {{row.Jornadas}}<br /> \
+				<b>Modelos Educativos:</b> {{row.Modelos_Educativos}}<br /> \
+				<b>Tipo:</b> {{row.Tipo}}<br /> \
+				<b>N&uacute;mero Contrato:</b> {{row.Número_Contrato}}<br /> \
+				<a target='_blank' href='https://www.google.com/maps/search/?api=1&query={{row.Coordenadas}}'>Abrir en Google Maps</a> \
+				{{/if}} \
+			</div>\
+		</div>",
+		//Solo para que muestre los registros que no tienen coordenadas, si todo
+		// tiene coordenadas entonces se puede quitar para que ordene de acuerdo
+		// a la ubicación, es decir el mas cercano.
+		listViewSortByColumn: "'Nombre Sede'",
 
 /*
 

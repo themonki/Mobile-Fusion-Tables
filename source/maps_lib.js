@@ -45,14 +45,14 @@ $.extend(MapsLib, {
     templateId:         (MapsLib.templateId == 0) ? 0 : (MapsLib.templateId || 3),
     mapOverlayLayers:   [],
     mapOverlayOrder:    [],
-    map_centroid:       new google.maps.LatLng(37.77, -122.45), // center on SF if all else fails
+    map_centroid:       new google.maps.LatLng(3.454208, -76.534067), // center on SF if all else fails
     defaultZoom:        9,
 
     // markers
     addrMarker:         null,
     localMarker:        null,
-    addrMarkerImage:    '//maps.google.com/intl/en_us/mapfiles/ms/micons/red-dot.png',
-    blueDotImage:       '//maps.google.com/intl/en_us/mapfiles/ms/micons/blue-dot.png',
+    addrMarkerImage:    'source/images/red-dot.png',
+    blueDotImage:       'source/images/blue-dot.png',
     currentPinpoint:    null,
     defaultPixelOffset: new google.maps.Size(0,-30),
 
@@ -60,7 +60,7 @@ $.extend(MapsLib, {
     infoWindow:         new google.maps.InfoWindow({}),
     infoboxCompiled:    null,
     queueInfobox:       false,
-    nearbyPinInfobox:   MapsLib.nearbyPinInfobox || "You are here.",
+    nearbyPinInfobox:   MapsLib.nearbyPinInfobox || "Estas aquí.",
     addressPinInfobox:  MapsLib.addressPinInfobox || "{address}",
 
     // about
@@ -101,7 +101,7 @@ $.extend(MapsLib, {
         }
     },
     onPopState: function() {
-        var nonMaps = ["#page-search", "#page-about", "#page-list"];
+        var nonMaps = ["#page-search", "#page-about", "#page-list", "#page-locator"];
         var inMap = true;
         $.each(nonMaps, function(i, tag)
         {
@@ -341,8 +341,8 @@ $.extend(MapsLib, {
         }
         if (MapsLib.searchPage.addressAutocomplete != false && !("country" in MapsLib.searchPage.addressAutocomplete))
         {
-            // default to US
-            MapsLib.searchPage.addressAutocomplete.country = "us";
+            // default to CO
+            MapsLib.searchPage.addressAutocomplete.country = "co";
         }
     },
     conformSchema: function() {
@@ -569,9 +569,9 @@ $.extend(MapsLib, {
         var myOptions = {
             zoom: MapsLib.defaultZoom,
             center: MapsLib.map_centroid,
-            streetViewControl: false,
-            panControl: false,
-            mapTypeControl: false,
+            streetViewControl: true,
+            panControl: true,
+            mapTypeControl: true,
             mapTypeId: google.maps.MapTypeId.ROADMAP
         };
 
@@ -700,7 +700,7 @@ $.extend(MapsLib, {
                         position: MapsLib.nearbyPosition,
                         map: MapsLib.map,
                         icon: MapsLib.blueDotImage,
-                        title: "You are here."
+                        title: "Estas aquí."
                     });
                 }
                 else if (MapsLib.localMarker.map != MapsLib.map)
@@ -736,7 +736,7 @@ $.extend(MapsLib, {
             } 
             else 
             {
-                alert("Your device is not sharing its location.");
+                alert("Tu dispositivo no esta compartiendo la ubicación.");
             }
             return false;
         }
@@ -752,6 +752,7 @@ $.extend(MapsLib, {
         // Wire up event handler for nearby button.
         $("#nearby").click(function(e) {
             MapsLib.safeShow(MapsLib.addrMarker, false);
+            MapsLib.safeShow(MapsLib.localMarker, true);
             if (MapsLib.useNearbyLocation)
             {
                 getlocation();
@@ -953,12 +954,16 @@ $.extend(MapsLib, {
         var settings = MapsLib.searchPage;
         if (settings.addressShow)
         {
-            html.push("<label for='search_address'>Address / Intersection:</label>");
-            html.push("<input class='input-block-level' data-clear-btn='true' id='search_address' placeholder='defaults to map center' type='text' />");
+		    html.push("<label for='search_address'>Lugar / Dirección:</label>");
+            html.push("<input class='input-block-level' data-clear-btn='true' id='search_address' placeholder='por defecto al centro del mapa' type='text' />");
+            //Custom
+            html.push("<hr><label class='ui-input-text' for='open_locator'></label>");
+            html.push("<a data-role='button' href='#page-locator' data-icon='blackLocation' data-iconpos='left' class='ui-btn-left' id='open_locator' onclick='MapsLib.onExitMap();MapsLib.enterMapSelector();'>Seleccionar en el mapa</a>");
+            // End Custom
         }
         if (settings.distanceFilter.entries.length > 0)
         {
-            html.push("<hr><label for='search_radius'>Within:</label>");
+            html.push("<hr><label for='search_radius'>Dentro:</label>");
             html.push("<select class='input-small' id='search_radius'>");
             var distances = settings.distanceFilter.entries;
             for (var i = 0; i < distances.length; i++)
@@ -1038,15 +1043,15 @@ $.extend(MapsLib, {
                     var safename = MapsLib.safeField(cdata.column);
                     MapsLib.searchColumns.push(cdata.column);
                     var comparator = "=";
-                    var placeholder = "Exact match";
+                    var placeholder = "Coincidencia exacta";
                     if (cdata.exact_match)
                     {
-                        placeholder = "Exact match (case-sensitive)";
+                        placeholder = "Coincidencia exacta (distingue mayúsculas y minúsculas)";
                     }
                     else if (MapsLib.isStringColumn(cdata.column))
                     {
                         comparator = "CONTAINS IGNORING CASE";
-                        placeholder = "Match anything containing this text";
+                        placeholder = "Coincida el texto con cualquier contenido";
                     }
                     html.push("<hr><label for='sc_" + safename + "'>" + cdata.label + ":</label>");
                     html.push("<input class='input-block-level' data-clear-btn='true' data-ref='column' data-field='" + 
@@ -1182,7 +1187,7 @@ $.extend(MapsLib, {
                 // launched directly into the search page: hide search fields during setup
                 $("#section-search").css("visibility", "hidden");
             }
-            $("#section-search").html(MapsLib.searchHtml());
+            //$("#section-search").html(MapsLib.searchHtml());
 
             $.each(MapsLib.searchPage.columns, function(i, cdata) {
                 if (cdata.min)
@@ -1327,8 +1332,15 @@ $.extend(MapsLib, {
                     if (MapsLib.stringExists(MapsLib.addressPinInfobox))
                     {
                         google.maps.event.addListener(MapsLib.addrMarker, 'click', function() {
+                        	// For coordinates selected over map
+                        	var dat = "";
+                        	if(MapsLib.locationSelector != null && MapsLib.locationSelector != undefined && address == MapsLib.locationSelector){
+                        		dat = MapsLib.addressPinInfobox.replace("{address}", address);
+                        	} else {
+                        		dat = MapsLib.addressPinInfobox.replace("{address}", address.split(",")[0]);
+                        	}
                             MapsLib.infoWindow.setOptions({
-                                content: '<div class="infobox-container">' + MapsLib.addressPinInfobox.replace("{address}", address.split(",")[0]) + '</div>',
+                                content: '<div class="infobox-container">' + dat + '</div>',
                                 position: MapsLib.currentPinpoint,
                                 pixelOffset: new google.maps.Size(0, -32)
                             });
@@ -1344,7 +1356,7 @@ $.extend(MapsLib, {
                 } 
                 else 
                 {
-                    alert("We could not find your address: " + status);
+                    alert("No pudimos encontrar tu dirección: " + status);
                 }
             });
         } 
@@ -1772,13 +1784,17 @@ $.extend(MapsLib, {
     },
     getListView: function() {
         MapsLib.listViewRows = [];
+        //Custom
+        MapsLib.countQueryListView = true;
         MapsLib.updateListView();
     },
     updateListView: function() {
         var whereClause = MapsLib.safeLocationColumn + " NOT EQUAL TO ''";
+        var countWhereClause = whereClause;
         var orderClause = "";
         if (MapsLib.customSearchFilter.length > 0) {
             whereClause += " AND " + MapsLib.customSearchFilter;
+            countWhereClause += " AND " + MapsLib.customSearchFilter;
         }
         // HACK: all we really want is the 10 rows that come after the existing MapsLib.listViewRows.
         //  but there's no way to get rows x to x+10 without also querying all the rows up to it.
@@ -1792,9 +1808,11 @@ $.extend(MapsLib, {
         else if (MapsLib.searchRadiusMeters > 0 && MapsLib.searchPage.distanceFilter.filterListResults)
         {
             whereClause += " AND ST_INTERSECTS(" + MapsLib.safeLocationColumn + ", CIRCLE(LATLNG" + centerPoint.toString() + "," + MapsLib.searchRadiusMeters + "))";
+            countWhereClause += " AND ST_INTERSECTS(" + MapsLib.safeLocationColumn + ", CIRCLE(LATLNG" + centerPoint.toString() + "," + MapsLib.searchRadiusMeters + "))";
             if (MapsLib.listViewSortByColumn)
             {
                 whereClause += " ORDER BY " + MapsLib.listViewSortByColumn;
+                countWhereClause += " ORDER BY " + MapsLib.listViewSortByColumn;
             }
             whereClause += limitClause;
         } 
@@ -1807,10 +1825,12 @@ $.extend(MapsLib, {
 
         if (MapsLib.listViewRows.length == 0)
         {
-            $("ul#listview").html('<li data-corners="false" data-shadow="false" data-iconshadow="true" data-theme="d">Loading results...</li>');
+            $("ul#listview").html('<li data-corners="false" data-shadow="false" data-iconshadow="true" data-theme="d">Cargando resultados...</li>');
         }
         if (!MapsLib.in_query) MapsLib.in_query = true;
         MapsLib.query("*", whereClause, orderClause, "", "MapsLib.displayListView");
+        //Custom for show result on list view, only query once time
+        if(MapsLib.countQueryListView) MapsLib.query("Count()", countWhereClause, "", "", "MapsLib.countListView");
     },
     updateSearchForeach: function(json) {
         var selectObject = $("#" + MapsLib.in_query);
@@ -1942,6 +1962,72 @@ $.extend(MapsLib, {
     // NOTE: if you add custom functions, make sure to append each one with a 
     // comma, except for the last one.
     // This also applies to the convertToPlainString function above
+    ,
+    countQueryListView :false
+    ,
+    countListView: function(json) {
+    	if(MapsLib.countQueryListView){
+		    var numRows = (json != undefined && json.rows != undefined) ? json.rows.length : 0;
+		    if(numRows > 0) {
+				$("#total").html('<h4>Total de Resultados: ' + json.rows[0][0]+'</h4>');
+			} else {
+				$("#total").html('<h4>No se encontrarón registros.</h4>');
+			}
+			MapsLib.countQueryListView = false;
+		}
+    },
+    locationSelector : null,
+    enterMapSelector: function() {
+    	MapsLib.locationSelector = null;
+    	var marker = null;
+		var options = {
+	        zoom: 15,
+            center: MapsLib.map_centroid,
+            streetViewControl: false,
+            panControl: false,
+            mapTypeControl: false,
+	        mapTypeId: google.maps.MapTypeId.ROADMAP
+	    };
+		var map = new google.maps.Map($("#map_locator_canvas")[0], options);
+		google.maps.event.addListener(map, 'click', function(event) {
+			if (marker==null) {
+				marker = new google.maps.Marker({
+					position : event.latLng,
+					icon: MapsLib.addrMarkerImage,
+					map: map
+				});          
+			} else {
+				marker.setPosition(event.latLng);
+			}
+			var dat = "" + event.latLng.lat() + "," + event.latLng.lng();
+			MapsLib.locationSelector = dat;
+		});
+	},
+	doLocationSelector : function () {
+		if (MapsLib.locationSelector!=null && MapsLib.locationSelector!=undefined) {
+			$("#search_address").val(MapsLib.locationSelector);
+			return true;
+		} else {
+			alert("Por favor seleccione sobre el mapa, de lo contrario de clic en Atrás.");
+			return false;
+		}
+	},
+	changeLayers : function () {
+    //Permite adicionar las diferentes capas que se registren con el checkbox, 
+    //dependiendo del orden los primeros van por debajo y los ultimos van por 
+    //encima.
+    	var capas = [];
+    	if($("#check_capa_comunas").is(":checked") == true) {
+    		capas.push(0);
+    	}
+    	if($("#check_capa_barrios").is(":checked") == true) {
+    		capas.push(1);
+    	}
+    	if($("#check_capa_centros_poblados").is(":checked") == true) {
+    		capas.push(2);
+    	}
+    	MapsLib.setLayerVisibility(capas);
+    },
     //-----end of custom functions-----------------------------------------------
 });
 
