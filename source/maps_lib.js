@@ -1343,12 +1343,16 @@ $.extend(MapsLib, {
                         	// For coordinates selected over map
                         	var dat = "";
                         	if(MapsLib.locationSelector != null && MapsLib.locationSelector != undefined && address == MapsLib.locationSelector){
-                        		dat = MapsLib.addressPinInfobox.replace("{address}", address);
-                        	} else {
+                        		dat = "Seleccionado en el mapa:</br>" + MapsLib.addressPinInfobox.replace("{address}", address);
+                        	}else if(isValidCoor) {
+                        		dat = "Coordenada:</br>" + MapsLib.addressPinInfobox.replace("{address}", address);
+                        	}
+                        	else {
                         		dat = MapsLib.addressPinInfobox.replace("{address}", address.split(",")[0]);
                         	}
+                        	// end For coordinates selected over map
                             MapsLib.infoWindow.setOptions({
-                                content: '<div class="infobox-container">' + dat + '</div>',
+                                content: '<div id="dat" class="infobox-container">' + dat + '</div>',
                                 position: MapsLib.currentPinpoint,
                                 pixelOffset: new google.maps.Size(0, -32)
                             });
