@@ -954,7 +954,7 @@ $.extend(MapsLib, {
         var settings = MapsLib.searchPage;
         if (settings.addressShow)
         {
-		    html.push("<label for='search_address'>Lugar / Dirección:</label>");
+		    html.push("<label for='search_address'>Lugar / Dirección / Coordenada:</label>");
             html.push("<input class='input-block-level' data-clear-btn='true' id='search_address' placeholder='por defecto al centro del mapa' type='text' />");
             //Custom
             html.push("<hr><label class='ui-input-text' for='open_locator'></label>");
@@ -1312,8 +1312,16 @@ $.extend(MapsLib, {
                 'address': address
             }, function(results, status) {
                 if (status == google.maps.GeocoderStatus.OK) {
-                    MapsLib.currentPinpoint = results[0].geometry.location;
-
+                
+                	//custom for selection map
+                	var isValidCoor = /^[\-0-9,.]*$/.test(address);
+                	if(isValidCoor){
+                		MapsLib.currentPinpoint = new google.maps.LatLng(address.split(',')[0],address.split(',')[1]);
+                	} else {
+                		MapsLib.currentPinpoint = results[0].geometry.location;
+                	}
+                	//end custom for selection map
+                	
                     MapsLib.map.setCenter(MapsLib.currentPinpoint);
                     MapsLib.map_centroid = MapsLib.currentPinpoint;
                     if (MapsLib.searchRadiusMeters > 0)
